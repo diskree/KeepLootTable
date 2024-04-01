@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "com.diskree.keeploottable.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+		"LootableContainerBlockEntityMixin",
+		"LootableInventoryMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
