@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.advancement.criterion.PlayerGeneratesContainerLootCriterion;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
@@ -14,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
@@ -36,12 +34,8 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     @Nullable
     protected Identifier lootTableId;
 
-    protected LootableContainerBlockEntityMixin(
-            BlockEntityType<?> blockEntityType,
-            BlockPos blockPos,
-            BlockState blockState
-    ) {
-        super(blockEntityType, blockPos, blockState);
+    protected LootableContainerBlockEntityMixin(BlockEntityType<?> blockEntityType) {
+        super(blockEntityType);
     }
 
     @ModifyReturnValue(method = "deserializeLootTable", at = @At("RETURN"))
