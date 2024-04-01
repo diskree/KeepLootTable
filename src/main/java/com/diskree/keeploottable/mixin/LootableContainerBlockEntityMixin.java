@@ -4,16 +4,12 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.advancement.criterion.PlayerGeneratesContainerLootCriterion;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,7 +35,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     }
 
     @ModifyReturnValue(method = "deserializeLootTable", at = @At("RETURN"))
-    private boolean readCustomDataFromNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
+    private boolean readCustomDataFromNbt(boolean original, @Local(argsOnly = true) CompoundTag nbt) {
         if (original) {
             if (nbt.contains("LootGenerated")) {
                 isLootGenerated = nbt.getBoolean("LootGenerated");
@@ -52,7 +48,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     }
 
     @ModifyReturnValue(method = "serializeLootTable", at = @At("RETURN"))
-    private boolean writeCustomDataToNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
+    private boolean writeCustomDataToNbt(boolean original, @Local(argsOnly = true) CompoundTag nbt) {
         if (original) {
             nbt.putBoolean("LootGenerated", isLootGenerated);
             if (isLootGenerated) {
@@ -76,19 +72,6 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
             return lootTableId;
         }
         return null;
-    }
-
-    @Redirect(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/criterion/PlayerGeneratesContainerLootCriterion;test(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/util/Identifier;)V"))
-    private void turnOffVanillaCriteriaTriggerLogic(PlayerGeneratesContainerLootCriterion instance, ServerPlayerEntity player, Identifier id) {
-        // nothing
-    }
-
-    @Inject(method = "checkLootInteraction", at = @At(value = "HEAD"))
-    private void applyCustomCriteriaTriggerLogic(PlayerEntity player, CallbackInfo ci) {
-        World world = this.getWorld();
-        if (lootTableId != null && world != null && world.getServer() != null && player instanceof ServerPlayerEntity) {
-            Criteria.PLAYER_GENERATES_CONTAINER_LOOT.test((ServerPlayerEntity) player, lootTableId);
-        }
     }
 
     @Inject(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;supplyInventory(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/loot/context/LootContext;)V"))
