@@ -97,7 +97,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
         }
     }
 
-    @Inject(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;supplyInventory(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/loot/context/LootContextParameterSet;J)V"))
+    @Inject(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;supplyInventory(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/loot/context/LootContext;)V"))
     private void onLootGenerated(PlayerEntity player, CallbackInfo ci) {
         isLootGenerated = true;
     }
