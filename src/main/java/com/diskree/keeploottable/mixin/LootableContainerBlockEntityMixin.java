@@ -84,7 +84,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
         return null;
     }
 
-    @Redirect(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/criterion/PlayerGeneratesContainerLootCriterion;trigger(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/util/Identifier;)V"))
+    @Redirect(method = "checkLootInteraction", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/criterion/PlayerGeneratesContainerLootCriterion;test(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/util/Identifier;)V"))
     private void turnOffVanillaCriteriaTriggerLogic(PlayerGeneratesContainerLootCriterion instance, ServerPlayerEntity player, Identifier id) {
         // nothing
     }
@@ -93,7 +93,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     private void applyCustomCriteriaTriggerLogic(PlayerEntity player, CallbackInfo ci) {
         World world = this.getWorld();
         if (lootTableId != null && world != null && world.getServer() != null && player instanceof ServerPlayerEntity) {
-            Criteria.PLAYER_GENERATES_CONTAINER_LOOT.trigger((ServerPlayerEntity) player, lootTableId);
+            Criteria.PLAYER_GENERATES_CONTAINER_LOOT.test((ServerPlayerEntity) player, lootTableId);
         }
     }
 
