@@ -10,7 +10,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -39,7 +39,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     }
 
     @ModifyReturnValue(method = "deserializeLootTable", at = @At("RETURN"))
-    private boolean readCustomDataFromNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
+    private boolean readCustomDataFromNbt(boolean original, @Local(argsOnly = true) CompoundTag nbt) {
         if (original) {
             if (nbt.contains("LootGenerated")) {
                 isLootGenerated = nbt.getBoolean("LootGenerated");
@@ -52,7 +52,7 @@ public abstract class LootableContainerBlockEntityMixin extends LockableContaine
     }
 
     @ModifyReturnValue(method = "serializeLootTable", at = @At("RETURN"))
-    private boolean writeCustomDataToNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
+    private boolean writeCustomDataToNbt(boolean original, @Local(argsOnly = true) CompoundTag nbt) {
         if (original) {
             nbt.putBoolean("LootGenerated", isLootGenerated);
             if (isLootGenerated) {
