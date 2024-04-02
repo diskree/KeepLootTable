@@ -31,6 +31,7 @@ processResources {
             'repoUrl'            : repoUrl,
             'minJavaVersion'     : minJavaVersion,
             'minMinecraftVersion': minMinecraftVersion,
+            'maxMinecraftVersion': maxMinecraftVersion,
             'minLoaderVersion'   : minLoaderVersion
     ]
     inputs.properties(propertyMap)
