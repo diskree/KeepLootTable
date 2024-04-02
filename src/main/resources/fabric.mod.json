@@ -3,7 +3,7 @@
   "id": "${modId}",
   "version": "${modVersion}",
   "name": "${modName}",
-  "description": "",
+  "description": "Loot table will be stored in the NBT after loot is generated.",
   "authors": [
     "${author}"
   ],
@@ -23,7 +23,7 @@
   ],
   "depends": {
     "java": ">=${minJavaVersion}",
-    "minecraft": ">=${minecraftVersion}",
+    "minecraft": ">=${minMinecraftVersion} <=${maxMinecraftVersion}",
     "fabricloader": ">=${minLoaderVersion}"
   },
   "accessWidener": "keeploottable.accesswidener"
