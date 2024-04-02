@@ -23,7 +23,7 @@
   ],
   "depends": {
     "java": ">=${minJavaVersion}",
-    "minecraft": ">=${minecraftVersion}",
+    "minecraft": ">=${minMinecraftVersion}",
     "fabricloader": ">=${minLoaderVersion}"
   },
   "accessWidener": "keeploottable.accesswidener"
