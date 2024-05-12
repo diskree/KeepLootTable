@@ -11,9 +11,10 @@ import net.minecraft.advancement.criterion.PlayerGeneratesContainerLootCriterion
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.LootableInventory;
+import net.minecraft.loot.LootTable;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,12 +28,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public interface LootableInventoryMixin {
 
     @Shadow
-    @Nullable World getWorld();
+    @Nullable
+    World getWorld();
 
     @Shadow
-    @Nullable Identifier getLootTableId();
+    @Nullable
+    RegistryKey<LootTable> getLootTable();
 
-    @ModifyReturnValue(method = "readLootTable", at = @At("RETURN"))
+    @ModifyReturnValue(
+        method = "readLootTable",
+        at = @At("RETURN")
+    )
     private boolean readCustomDataFromNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
         if (original && this instanceof LootableContainerBlockEntityAccessor lootableContainerBlockEntity) {
             lootableContainerBlockEntity.keeploottable$readDataFromNbt(nbt);
@@ -43,7 +49,10 @@ public interface LootableInventoryMixin {
         return original;
     }
 
-    @ModifyReturnValue(method = "writeLootTable", at = @At("RETURN"))
+    @ModifyReturnValue(
+        method = "writeLootTable",
+        at = @At("RETURN")
+    )
     private boolean writeCustomDataToNbt(boolean original, @Local(argsOnly = true) NbtCompound nbt) {
         if (original && this instanceof LootableContainerBlockEntityAccessor lootableContainerBlockEntity) {
             lootableContainerBlockEntity.keeploottable$writeDataToNbt(nbt);
@@ -54,39 +63,75 @@ public interface LootableInventoryMixin {
         return original;
     }
 
-    @WrapOperation(method = "generateLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/LootableInventory;setLootTableId(Lnet/minecraft/util/Identifier;)V"))
-    private void keepLootTableIdIfNeeded(LootableInventory instance, @Nullable Identifier identifier, Operation<Void> original) {
-        if (!(this instanceof LootableContainerBlockEntity) || identifier != null) {
-            original.call(instance, identifier);
+    @WrapOperation(
+        method = "generateLoot",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/inventory/LootableInventory;setLootTable(Lnet/minecraft/registry/RegistryKey;)V"
+        )
+    )
+    private void keepLootTableIdIfNeeded(
+        LootableInventory lootableInventory,
+        RegistryKey<LootTable> lootTableRegistryKey,
+        Operation<Void> original
+    ) {
+        if (!(this instanceof LootableContainerBlockEntity) || lootTableRegistryKey != null) {
+            original.call(lootableInventory, lootTableRegistryKey);
         }
     }
 
-    @ModifyExpressionValue(method = "generateLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/LootableInventory;getLootTableId()Lnet/minecraft/util/Identifier;"))
-    private Identifier modifyLootTableId(Identifier original) {
-        if (getWorld() == null || getLootTableId() == null) {
+    @ModifyExpressionValue(
+        method = "generateLoot",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/inventory/LootableInventory;getLootTable()Lnet/minecraft/registry/RegistryKey;"
+        )
+    )
+    private RegistryKey<LootTable> modifyLootTableId(RegistryKey<LootTable> original) {
+        if (getWorld() == null || getLootTable() == null) {
             return null;
         }
-        if (this instanceof LootableContainerBlockEntityAccessor lootableContainerBlockEntity && lootableContainerBlockEntity.keeploottable$shouldGenerateLoot()) {
+        if (this instanceof LootableContainerBlockEntityAccessor lootableContainerBlockEntity &&
+            lootableContainerBlockEntity.keeploottable$shouldGenerateLoot()) {
             return original;
         }
         return null;
     }
 
-    @Redirect(method = "generateLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/advancement/criterion/PlayerGeneratesContainerLootCriterion;trigger(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/util/Identifier;)V"))
-    private void turnOffVanillaCriteriaTriggerLogic(PlayerGeneratesContainerLootCriterion instance, ServerPlayerEntity player, Identifier id) {
+    @Redirect(
+        method = "generateLoot",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/advancement/criterion/PlayerGeneratesContainerLootCriterion;trigger(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/registry/RegistryKey;)V"
+        )
+    )
+    private void turnOffVanillaCriteriaTriggerLogic(
+        PlayerGeneratesContainerLootCriterion criterion,
+        ServerPlayerEntity player,
+        RegistryKey<LootTable> lootTable
+    ) {
         // nothing
     }
 
-    @Inject(method = "generateLoot", at = @At(value = "HEAD"))
+    @Inject(
+        method = "generateLoot",
+        at = @At(value = "HEAD")
+    )
     private void applyCustomCriteriaTriggerLogic(PlayerEntity player, CallbackInfo ci) {
         World world = this.getWorld();
-        Identifier identifier = this.getLootTableId();
-        if (identifier != null && world != null && world.getServer() != null && player instanceof ServerPlayerEntity) {
-            Criteria.PLAYER_GENERATES_CONTAINER_LOOT.trigger((ServerPlayerEntity) player, identifier);
+        RegistryKey<LootTable> lootTable = this.getLootTable();
+        if (lootTable != null && world != null && world.getServer() != null && player instanceof ServerPlayerEntity) {
+            Criteria.PLAYER_GENERATES_CONTAINER_LOOT.trigger((ServerPlayerEntity) player, lootTable);
         }
     }
 
-    @Inject(method = "generateLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;supplyInventory(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/loot/context/LootContextParameterSet;J)V"))
+    @Inject(
+        method = "generateLoot",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/loot/LootTable;supplyInventory(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/loot/context/LootContextParameterSet;J)V"
+        )
+    )
     private void onLootGenerated(PlayerEntity player, CallbackInfo ci) {
         if (this instanceof LootableContainerBlockEntityAccessor lootableContainerBlockEntity) {
             lootableContainerBlockEntity.keeploottable$onLootGenerated();
